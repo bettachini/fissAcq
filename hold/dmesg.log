@@ -1,0 +1,28 @@
+vbettachini@IYD7174:/dev$ dmesg | tail -20
+[ 5097.712075] usb 4-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 5097.712080] usb 4-2: Product: Tektronix TDS2002B
+[ 5097.712084] usb 4-2: Manufacturer: Tektronix, Inc.
+[ 5097.712087] usb 4-2: SerialNumber: C101891
+[ 5103.000163] usb 4-2: USB disconnect, device number 3
+[ 5641.348023] usb 3-2: new full-speed USB device number 12 using uhci_hcd
+[ 5641.520062] usb 3-2: New USB device found, idVendor=0699, idProduct=036b
+[ 5641.520078] usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 5641.520081] usb 3-2: Product: Tektronix TDS2002B
+[ 5641.520083] usb 3-2: Manufacturer: Tektronix, Inc.
+[ 5641.520085] usb 3-2: SerialNumber: C101891
+[ 5641.529269] generic-usb 0003:0699:036B.0007: hiddev0,hidraw0: USB HID v1.00 Device [Tektronix, Inc. Tektronix TDS2002B] on usb-0000:00:10.1-2/input0
+[ 5643.948158] hub 1-0:1.0: connect-debounce failed, port 4 disabled
+[ 5643.948196] usb 3-2: USB disconnect, device number 12
+[ 5644.624173] usb 3-2: new full-speed USB device number 13 using uhci_hcd
+[ 5644.800065] usb 3-2: New USB device found, idVendor=0699, idProduct=0364
+[ 5644.800071] usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 5644.800076] usb 3-2: Product: Tektronix TDS2002B
+[ 5644.800080] usb 3-2: Manufacturer: Tektronix, Inc.
+[ 5644.800084] usb 3-2: SerialNumber: C101891
+vbettachini@IYD7174:/dev$ lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 013: ID 0699:0364 Tektronix, Inc. 

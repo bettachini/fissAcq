@@ -1,0 +1,75 @@
+In [1]: import visa
+
+In [2]: rm = visa.ResourceManager('@py')
+
+In [3]: print(rm.list_resources())
+---------------------------------------------------------------------------
+USBError                                  Traceback (most recent call last)
+<ipython-input-3-b97a6d9ba222> in <module>()
+----> 1 print(rm.list_resources())
+
+/usr/local/lib/python2.7/dist-packages/pyvisa/highlevel.pyc in list_resources(self, query)
+   1552 
+   1553         try:
+-> 1554             find_list, return_counter, instrument_description, err = lib.find_resources(self.session, query)
+   1555         except errors.VisaIOError as e:
+   1556             if e.error_code == constants.StatusCode.error_resource_not_found:
+
+/usr/local/lib/python2.7/dist-packages/pyvisa-py/highlevel.pyc in find_resources(self, session, query)
+    234 
+    235         resources = sum([st.list_resources()
+--> 236                          for key, st in sessions.Session.iter_valid_session_classes()], [])
+    237 
+    238         query = query.replace('?*', '.*')
+
+/usr/local/lib/python2.7/dist-packages/pyvisa-py/usb.pyc in list_resources()
+     53                                   manufacturer_id=dev.idVendor,
+     54                                   model_code=dev.idProduct,
+---> 55                                   serial_number=dev.serial_number,
+     56                                   usb_interface_number=intfc))
+     57         return out
+
+/usr/local/lib/python2.7/dist-packages/usb/core.pyc in serial_number(self)
+    763         """
+    764         if self._serial_number is None:
+--> 765             self._serial_number = util.get_string(self, self.iSerialNumber)
+    766         return self._serial_number
+    767 
+
+/usr/local/lib/python2.7/dist-packages/usb/util.pyc in get_string(dev, index, langid)
+    259                     254,
+    260                     DESC_TYPE_STRING,
+--> 261                     0
+    262                 )
+    263         assert len(buf) >= 4
+
+/usr/local/lib/python2.7/dist-packages/usb/control.pyc in get_descriptor(dev, desc_size, desc_type, desc_index, wIndex)
+    171             wValue = wValue,
+    172             wIndex = wIndex,
+--> 173             data_or_wLength = desc_size)
+    174 
+    175 def set_descriptor(dev, desc, desc_type, desc_index, wIndex = None):
+
+/usr/local/lib/python2.7/dist-packages/usb/core.pyc in ctrl_transfer(self, bmRequestType, bRequest, wValue, wIndex, data_or_wLength, timeout)
+    969                                     wIndex,
+    970                                     buff,
+--> 971                                     self.__get_timeout(timeout))
+    972 
+    973         if isinstance(data_or_wLength, array.array) \
+
+/usr/local/lib/python2.7/dist-packages/usb/backend/libusb0.pyc in ctrl_transfer(self, dev_handle, bmRequestType, bRequest, wValue, wIndex, data, timeout)
+    526                             cast(address, c_char_p),
+    527                             length,
+--> 528                             timeout
+    529                         ))
+    530 
+
+/usr/local/lib/python2.7/dist-packages/usb/backend/libusb0.pyc in _check(ret)
+    378         else:
+    379             return ret
+--> 380     raise USBError(errmsg, ret)
+    381 
+    382 # implementation of libusb 0.1.x backend
+
+USBError: [Errno None] error sending control message: Operation not permitted
+

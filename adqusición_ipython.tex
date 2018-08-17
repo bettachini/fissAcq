@@ -1,0 +1,181 @@
+\documentclass[a4paper]{article}
+
+\usepackage[margin=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[locale=FR]{siunitx}
+\def\spanishoptions{argentina}
+\usepackage[spanish]{babel}
+
+\begin{document}
+
+
+\title{Adquisición desde osciloscopio Tex TDS 2002B}
+\date{\today}
+\author{Víctor A. Bettachini}
+\maketitle
+
+\section{USBTMC}
+basado en \verb'http://www.cibomahto.com/2010/04/controlling-a-rigol-oscilloscope-using-linux-and-python/'
+
+@ TDS 2002B
+Encendido
+utilidades/Puerto USB trasero -> computadora
+figura bajo /dev/usbtmc0
+
+@ tek.py están las clases usbtmc y tek
+
+Uso como base código \verb'https://pypi.python.org/pypi/PyTektronixScope' que usa PyVISA
+
+
+\subsection{permisos usbtmc0}
+Corregido el problema de permisos con el puerto usb
+USBError: [Errno 13] Access denied (insufficient permissions)
+
+Creo una regla de udev en \verb'/lib/udev/rules.d/40-usbtmc-permissions.rules'
+para el módulo del kernel de usbtmc según instrucciones en \verb'www.raspberrypi.org/forums/viewtopic.php?t=60784&p=485926
+'. 
+
+\begin{verbatim}
+# à la https://www.raspberrypi.org/forums/viewtopic.php?t=60784&p=485926
+# Devices
+KERNEL=="usbtmc/*", MODE="0660", GROUP="dialout"
+KERNEL=="usbtmc[0-9]*", MODE="0660", GROUP="dialout"
+\end{verbatim}
+
+Donde el MODE lo obtuve de \verb'stat -c %a /dev/ttyS0' que corresponde a \verb'crw-rw----'
+y GROUP es \verb'dialout' al igual que el dispositivo anterior.
+
+
+
+No funcionó lo propuesto en \verb'http://svn.openmoko.org/developers/werner/ahrt/host/tmc/etc/40-usbtmc-permissions.rules'
+De lsusb obtengo \verb'Bus 002 Device 005: ID 0699:0364 Tektronix, Inc.'
+por lo que en \verb'/lib/udev/rules.d/40-usbtmc-permissions.rules' debiera figurar 
+\verb'ATTRS{idVendor}=="0699", ATTRS{idProduct}=="0346", MODE="0660", GROUP="dialout"'
+
+
+Pero ahora tengo un problema de timeout.
+Quito lo regla y vuelvo a darle permisos útiles manualmente.
+
+\begin{verbatim}
+sudo chmod --reference /dev/ttyS0 /dev/usbtmc0
+sudo chgrp dialout /dev/usbtmc0
+\end{verbatim}
+
+
+
+\section{Error de timeout}
+\verb'OSError: [Errno 110] Connection timed out'
+Causado parque el canal que se pide transferir no está activo/ no tiene datos.
+
+Con \verb'DATa:SOUrce?' ví que el canal a transferir era el 2, pero estaba sin datos.
+Bastó con establecer \verb'DATa:SOUrce CH1' para que todo volviera a la normalidad. 
+
+
+\section{PyVISA}
+
+Los errores con Python2 fueron demasiados. \ref{Python2}
+Pero ahora tengo el mismo error de time out. 
+
+
+\section{Python3}
+sudo apt-get ipython3
+sudo -HE python3 get-pip.py at no avail... sudo apt-get install python3-pip
+sudo -HE pip-3.2 install -U pyvisa
+sudo -EH pip-3.2 install pyvisa-py
+sudo -EH pip-3.2 install pyserial
+sudo -EH pip-3.2 install pyusb
+
+Con python3 evité los errores anteriores y pude hacer un *IDN? corriendo bajo sudo -E ipython3
+
+
+\subsubsection{Corrida típica}
+@ TDS 2002B
+Encendido
+utilidades/Puerto USB trasero -> Ordenador
+
+\begin{verbatim}
+In [1]: import visa
+
+In [2]: rm = visa.ResourceManager('@py')
+
+In [3]: print(rm.list_resources())
+('ASRL/dev/ttyS1::INSTR', 'ASRL/dev/ttyS0::INSTR', 'ASRL/dev/ttyS3::INSTR', 'ASRL/dev/ttyS2::INSTR', 'USB0::1689::868::C101891::0::INSTR')
+
+In [4]: my_instrument = rm.open_resource('USB0::1689::868::C101891::0::INSTR')
+
+In [5]: print(my_instrument.query("*IDN?") 
+
+ValueError: [Errno 110] Operation timed out
+\end{verbatim}
+
+
+\subsubsection{Conexión}
+\verb"rm.list_resources()"
+\verb"(u'ASRL/dev/ttyS1::INSTR', u'ASRL/dev/ttyS0::INSTR', u'ASRL/dev/ttyS3::INSTR', u'ASRL/dev/ttyS2::INSTR')"
+
+
+¿Donde está conectado el TDS2002B?
+\begin{verbatim}
+dmesg | tail -20
+[ 3096.816414] usb 2-1: USB disconnect, device number 4
+[ 3097.424276] usb 2-1: new full-speed USB device number 5 using uhci_hcd
+[ 3097.600185] usb 2-1: New USB device found, idVendor=0699, idProduct=0364
+[ 3097.600191] usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 3097.600197] usb 2-1: Product: Tektronix TDS2002B
+[ 3097.600200] usb 2-1: Manufacturer: Tektronix, Inc.
+[ 3097.600204] usb 2-1: SerialNumber: C101891
+\end{verbatim}
+¿Será el ttySm?
+
+
+
+
+\section{Python2}\label{Python2}
+
+\subsection{PyVISA}
+\verb"https://pyvisa.readthedocs.org/en/master/index.html"
+
+pip
+    descargo get-pip.py de https://pip.pypa.io/en/stable/installing.html
+    sudo -E python get-pip.py % -E requerido para mantener configuración proxy en el environment que no funcionó para root usando sudo simple
+
+PyVISA
+    sudo -E pip install -U pyvisa
+
+Tengo el problema de que NI-Visa es de 32bit,
+-> PyVISA-py
+    http://python-in-the-lab.blogspot.com.ar/2014/10/communicating-with-instruments-using.html
+    sudo -E pip install pyvisa-py
+
+-> pyserial
+    sudo -E pip install pyserial
+
+No encontraba ningún usb, pues faltaba el backend de python para usb
+->  PyUSB
+    sudo -E pip install PyUSB
+Ahora causa un error cada vez que esta el tek conectado
+
+-> python-usbtmc
+    sudo -E pip install python-usbtmc
+No cambió nada
+
+ERROR semi-corregido: Era un problema de permisos
+    Probé el código que usa usbtmc de \verb"http://www.cibomahto.com/2010/04/controlling-a-rigol-oscilloscope-using-linux-and-python/"
+    Y solo función bajo sudo -> Ídem. con test de PyVISA bajo sudo que arrojó como devices:
+        (u'ASRL/dev/ttyS1::INSTR', u'ASRL/dev/ttyS0::INSTR', u'ASRL/dev/ttyS3::INSTR', u'ASRL/dev/ttyS2::INSTR', u'USB0::1689::868::C101891::0::INSTR')
+
+ERROR corregido: Método self.write()
+TypeError: Struct() argument 1 must be string, not unicode
+Se corrige con python 2.7 mas nuevo: https://github.com/hgrecco/pyvisa-py/issues/6
+Instalo la versión de Python de Jessie (ver \ref{testing})
+
+ERROR corregido: Método self.write()
+AttributeError: /lib/x86_64-linux-gnu/libusb-1.0.so.0: undefined symbol: libusb_strerror
+sudo apt-get -t wheezy-backports install libusb-1.0-0
+
+ERROR: Método self.write()
+ValueError: [Errno 110] Operation timed out
+
+
+\end{document}
+

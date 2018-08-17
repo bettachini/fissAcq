@@ -1,0 +1,8 @@
+setup.py
+PyTektronixScope/PyTektronixScope.py
+PyTektronixScope/VisaList.py
+PyTektronixScope/__init__.py
+PyTektronixScope.egg-info/PKG-INFO
+PyTektronixScope.egg-info/SOURCES.txt
+PyTektronixScope.egg-info/dependency_links.txt
+PyTektronixScope.egg-info/top_level.txt
